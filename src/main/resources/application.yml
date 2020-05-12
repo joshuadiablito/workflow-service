@@ -1,0 +1,57 @@
+spring:
+  jersey:
+    application-path: /engine-rest
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:test}
+  datasource:
+    driver-class-name: ${database.driver-class-name:org.h2.Driver}
+    type: com.zaxxer.hikari.HikariDataSource
+    password: ${database.password:sa}
+    username: ${database.username:}
+    url: ${database.url:jdbc:h2:mem:workflow-service;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false}
+    hikari:
+      maximum-pool-size: 30
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSqlLimit: 2048
+        prepStmtCacheSize: 250
+      pool-name: workflow-service
+      auto-commit: false
+    name: workflow-service
+
+camunda:
+  bpm:
+    authorization:
+      enabled: true
+
+server:
+  servlet.context-path: /camunda
+
+keycloak:
+  auth.url: ${auth.url:http://localhost:8080}
+  client.id: ${auth.clientId:camunda-identity-service}
+  client.secret: ${auth.clientSecret:secret}
+  realm: ${auth.realm:elf}
+
+security:
+  oauth2:
+    client:
+      client-id: ${keycloak.client.id}
+      client-secret: ${keycloak.client.secret}
+      accessTokenUri: ${keycloak.auth.url}/auth/realms/${keycloak.realm}/protocol/openid-connect/token
+      userAuthorizationUri: ${keycloak.auth.url}/auth/realms/${keycloak.realm}/protocol/openid-connect/auth
+      scope: openid profile email
+    resource:
+      userInfoUri: ${keycloak.auth.url}/auth/realms/${keycloak.realm}/protocol/openid-connect/userinfo
+
+rest.security:
+  jwk-set-url: ${keycloak.auth.url}/auth/realms/${keycloak.realm}/protocol/openid-connect/certs
+  required-audience: camunda-rest-api
+
+plugin.identity.keycloak:
+  keycloakIssuerUrl: ${keycloak.auth.url}/auth/realms/${keycloak.realm}
+  keycloakAdminUrl: ${keycloak.auth.url}/auth/admin/realms/${keycloak.realm}
+  clientId: ${keycloak.client.id}
+  clientSecret: ${keycloak.client.secret}
+  useEmailAsCamundaUserId: true
+  administratorGroupName: ${camunda.admin.group:camunda-admin}
