@@ -1,4 +1,4 @@
-package io.digital.patterns.workflow.security.rest;
+package io.digital.patterns.workflow.security;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;

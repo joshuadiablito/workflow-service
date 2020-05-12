@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -13,6 +14,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 import org.camunda.bpm.engine.IdentityService;
+import org.camunda.bpm.engine.ProcessEngine;
+import org.camunda.bpm.engine.identity.Group;
 import org.camunda.spin.Spin;
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
@@ -52,10 +55,9 @@ public class KeycloakAuthenticationFilter implements Filter {
         }
     }
 
-    private List<String> getUserGroups(String userId){
-        List<String> groupIds = new ArrayList<>();
-        identityService.createGroupQuery().groupMember(userId).list()
-                .forEach( g -> groupIds.add(g.getId()));
-        return groupIds;
+    private List<String> getUserGroups(String userId) {
+        return identityService.createGroupQuery().groupMember(userId).list()
+                .stream()
+                .map(Group::getId).collect(Collectors.toList());
     }
 }

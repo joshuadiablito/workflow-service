@@ -3,10 +3,12 @@ package io.digital.patterns.workflow.security.cockpit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.camunda.bpm.engine.ProcessEngine;
+import org.camunda.bpm.engine.identity.Group;
 import org.camunda.bpm.engine.rest.security.auth.AuthenticationResult;
 import org.camunda.bpm.engine.rest.security.auth.impl.ContainerBasedAuthenticationProvider;
 import org.springframework.security.core.Authentication;
@@ -42,10 +44,9 @@ public class KeycloakAuthenticationProvider extends ContainerBasedAuthentication
     }
 
     private List<String> getUserGroups(String userId, ProcessEngine engine) {
-        List<String> groupIds = new ArrayList<>();
-        engine.getIdentityService().createGroupQuery().groupMember(userId).list()
-                .forEach(g -> groupIds.add(g.getId()));
-        return groupIds;
+        return engine.getIdentityService().createGroupQuery().groupMember(userId).list()
+                .stream()
+                .map(Group::getId).collect(Collectors.toList());
     }
 
 }
