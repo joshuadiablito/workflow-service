@@ -1,6 +1,5 @@
 package io.digital.patterns.workflow.security.cockpit;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;

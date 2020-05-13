@@ -24,13 +24,13 @@ import org.springframework.security.oauth2.provider.token.store.jwk.JwkTokenStor
 @EnableWebSecurity
 @Order(SecurityProperties.BASIC_AUTH_ORDER - 20)
 @ConditionalOnProperty(name = "rest.security.enabled", havingValue = "true", matchIfMissing = true)
-public class RestApiSecurityConfig extends ResourceServerConfigurerAdapter {
+public class RestApiSecurityConfiguration extends ResourceServerConfigurerAdapter {
 
 
     private final RestApiSecurityConfigurationProperties configProps;
     private final IdentityService identityService;
 
-    public RestApiSecurityConfig(RestApiSecurityConfigurationProperties configProps, IdentityService identityService) {
+    public RestApiSecurityConfiguration(RestApiSecurityConfigurationProperties configProps, IdentityService identityService) {
         this.configProps = configProps;
         this.identityService = identityService;
     }

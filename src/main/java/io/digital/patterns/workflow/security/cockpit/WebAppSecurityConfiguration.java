@@ -18,11 +18,11 @@ import java.util.Collections;
 @Configuration
 @EnableOAuth2Sso
 @Order(SecurityProperties.BASIC_AUTH_ORDER - 10)
-public class WebAppSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebAppSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final KeycloakLogoutHandler keycloakLogoutHandler;
 
-    public WebAppSecurityConfig(KeycloakLogoutHandler keycloakLogoutHandler) {
+    public WebAppSecurityConfiguration(KeycloakLogoutHandler keycloakLogoutHandler) {
         this.keycloakLogoutHandler = keycloakLogoutHandler;
     }
 
