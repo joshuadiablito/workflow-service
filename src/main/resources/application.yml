@@ -33,6 +33,13 @@ keycloak:
   client.secret: ${auth.clientSecret:secret}
   realm: ${auth.realm:elf}
 
+aws:
+  region: ${aws.region:eu-west-2}
+  bucket-name: ${aws.case-bucket-name:}
+  credentials:
+    access-key: ${aws.credentials.access-key:}
+    secret-Key: ${aws.credentials.secret-key:}
+
 security:
   oauth2:
     client:
