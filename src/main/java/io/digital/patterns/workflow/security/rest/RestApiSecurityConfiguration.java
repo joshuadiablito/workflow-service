@@ -26,7 +26,9 @@ import org.springframework.security.oauth2.provider.token.store.jwk.JwkTokenStor
 @ConditionalOnProperty(name = "rest.security.enabled", havingValue = "true", matchIfMissing = true)
 public class RestApiSecurityConfiguration extends ResourceServerConfigurerAdapter {
 
-
+    private static final String ENGINE = "/engine";
+    private static final String ACTUATOR_HEALTH = "/actuator/health";
+    private static final String ACTUATOR_METRICS = "/actuator/metrics";
     private final RestApiSecurityConfigurationProperties configProps;
     private final IdentityService identityService;
 
@@ -43,6 +45,9 @@ public class RestApiSecurityConfiguration extends ResourceServerConfigurerAdapte
                 .and()
                 .antMatcher("/engine-rest/**")
                 .authorizeRequests()
+                .antMatchers(ENGINE).permitAll()
+                .antMatchers(ACTUATOR_HEALTH).permitAll()
+                .antMatchers(ACTUATOR_METRICS).permitAll()
                 .anyRequest()
                 .authenticated();
     }
