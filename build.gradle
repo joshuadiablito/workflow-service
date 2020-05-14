@@ -65,7 +65,6 @@ dependencies {
     implementation ('org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-webapp')
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation group: 'org.camunda.bpm.extension', name: 'camunda-bpm-identity-keycloak', version: '1.5.0'
-    implementation('org.camunda.connect:camunda-connect-connectors-all:1.4.0')
     implementation('org.camunda.connect:camunda-connect-core:1.4.0')
     implementation('org.camunda.bpm:camunda-engine-plugin-connect')
     implementation('org.camunda.spin:camunda-spin-dataformat-json-jackson:1.9.0')

@@ -35,7 +35,7 @@ keycloak:
 
 aws:
   region: ${aws.region:eu-west-2}
-  bucket-name: ${aws.case-bucket-name:}
+  bucket-name: ${aws.form-data-bucket-name:}
   credentials:
     access-key: ${aws.credentials.access-key:}
     secret-Key: ${aws.credentials.secret-key:}

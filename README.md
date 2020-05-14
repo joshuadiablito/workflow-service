@@ -26,3 +26,8 @@ The following properties need to be configured in AWS secrets manager
 * auth.clientSecret
 * auth.realm
 * gov.notify.api.key
+* aws.region
+* aws.credentials.access-key
+* aws.credentials.secret-key
+* aws.bucket-name-prefix
+* aws.form-data-bucket-name
