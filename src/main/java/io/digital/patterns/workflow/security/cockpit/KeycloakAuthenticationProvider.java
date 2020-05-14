@@ -1,11 +1,5 @@
 package io.digital.patterns.workflow.security.cockpit;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.identity.Group;
 import org.camunda.bpm.engine.rest.security.auth.AuthenticationResult;
@@ -14,6 +8,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.util.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class KeycloakAuthenticationProvider extends ContainerBasedAuthenticationProvider {
 

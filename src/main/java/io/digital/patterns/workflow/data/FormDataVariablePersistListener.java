@@ -2,8 +2,6 @@ package io.digital.patterns.workflow.data;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.SerializationUtils;
 import org.camunda.bpm.engine.HistoryService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
@@ -33,7 +31,6 @@ public class FormDataVariablePersistListener implements HistoryEventHandler {
     public static final String FAILED_TO_CREATE_S3_RECORD = "FAILED_TO_CREATE_S3_RECORD";
 
     protected static final List<String> VARIABLE_EVENT_TYPES = new ArrayList<>();
-    private static final ConcurrentHashMap<String, Boolean> S3_SAVE_CHECK = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, String> S3_PRODUCT = new ConcurrentHashMap<>();
     private final FormDataService formDataService;
     private final RuntimeService runtimeService;

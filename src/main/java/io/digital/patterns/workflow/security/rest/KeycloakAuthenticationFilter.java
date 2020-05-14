@@ -1,18 +1,6 @@
 package io.digital.patterns.workflow.security.rest;
 
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-
 import org.camunda.bpm.engine.IdentityService;
 import org.camunda.bpm.engine.identity.Group;
 import org.camunda.spin.Spin;
@@ -21,6 +9,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.jwt.JwtHelper;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
+
+import javax.servlet.*;
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class KeycloakAuthenticationFilter implements Filter {
