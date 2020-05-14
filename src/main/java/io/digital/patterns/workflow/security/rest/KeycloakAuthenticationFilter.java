@@ -14,7 +14,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
 import org.camunda.bpm.engine.IdentityService;
-import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.identity.Group;
 import org.camunda.spin.Spin;
 import org.slf4j.MDC;

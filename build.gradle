@@ -116,7 +116,8 @@ dependencies {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
     testImplementation 'org.springframework.cloud:spring-cloud-starter-contract-stub-runner:2.2.2.RELEASE'
-
+    testImplementation 'org.camunda.bpm.assert:camunda-bpm-assert:5.0.0'
+    testImplementation 'org.assertj:assertj-core:3.16.1'
 }
 
 jacoco {

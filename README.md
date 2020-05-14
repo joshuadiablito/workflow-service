@@ -31,3 +31,4 @@ The following properties need to be configured in AWS secrets manager
 * aws.credentials.secret-key
 * aws.bucket-name-prefix
 * aws.form-data-bucket-name
+* form-api.url
