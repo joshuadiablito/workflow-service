@@ -179,7 +179,7 @@ public class PdfService {
                 try {
                     address = new InternetAddress(recipient);
                 } catch (AddressException e) {
-                    log.error("Faile to resolve to address {} {}", recipient, e.getMessage());
+                    log.error("Failed to resolve to address {} {}", recipient, e.getMessage());
                 }
                 return address;
             }).toArray(Address[]::new));

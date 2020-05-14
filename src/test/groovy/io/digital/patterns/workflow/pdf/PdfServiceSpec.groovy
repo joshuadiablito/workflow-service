@@ -7,9 +7,9 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.model.PutObjectRequest
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService
+import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import com.github.tomjankes.wiremock.WireMockGroovy
-import org.camunda.bpm.engine.history.HistoricProcessInstance
 import org.camunda.bpm.engine.runtime.ProcessInstance
 import org.camunda.bpm.engine.test.ProcessEngineRule
 import org.camunda.bpm.engine.test.mock.Mocks
@@ -26,11 +26,9 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import static com.github.tomakehurst.wiremock.http.Response.response
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.assertThat
-import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.execute
-import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.historyService
-import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.job
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.repositoryService
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.runtimeService
 import static org.camunda.spin.Spin.S
@@ -153,5 +151,58 @@ class PdfServiceSpec extends Specification {
         then: 'pdf request was successful'
         assertThat(instance).isEnded()
 
+    }
+
+    def 'can raise an incident if s3 fails'() {
+        def conditions = new PollingConditions(timeout: 10, initialDelay: 1.5, factor: 1.25)
+        given: 'initial data set up'
+        amazonS3.createBucket("test-test")
+        amazonS3.putObject(new PutObjectRequest("test-test", "TEST-20200120-000/aForm/xx@x.com-20200128T083155.json",
+                new ClassPathResource("data.json").getInputStream(), new ObjectMetadata()))
+
+        and: 'a process with service task is created'
+        BpmnModelInstance modelInstance = Bpmn.createExecutableProcess("pdfFailure")
+                .executable()
+                .startEvent()
+                .camundaFormKey('sampleForm')
+                .serviceTask('generatePdf')
+                .camundaAsyncBefore()
+                .camundaAsyncAfter()
+                .name('Generate PDF')
+                .camundaExpression('${pdfService.requestPdfGeneration(form, businessKey, product, execution.getProcessInstanceId())}')
+                .camundaInputParameter('form', '${exampleForm.prop(\'form\')}')
+                .camundaInputParameter('product', 'test')
+                .camundaInputParameter('businessKey', '${exampleForm.prop(\'businessKey\').stringValue()}')
+                .endEvent()
+                .done()
+
+        repositoryService().createDeployment().addModelInstance("pdfFailure.bpmn", modelInstance).deploy()
+
+        when: 'pdf fails'
+        wireMockRule.stubFor(WireMock.post(WireMock.urlMatching("/pdf")).willReturn(
+                aResponse().withStatus(500))
+        )
+        ProcessInstance instance = runtimeService()
+                .createProcessInstanceByKey('pdfFailure')
+                .businessKey('TEST-20200120-000')
+                .setVariables(['exampleForm' : S('''{
+            "test" : "test",
+            "businessKey": "TEST-20200120-000",
+            "form" : {
+               "name" : "aForm",
+               "submittedBy": "xx@x.com",
+               "submissionDate": "2020-01-28T08:31:55.297Z",
+               "formVersionId": "formVersionId"
+            }
+        }''', DataFormats.JSON_DATAFORMAT_NAME)]).execute()
+
+        then: 'incident is created'
+        assertThat(instance).isActive()
+        conditions.eventually {
+            def incidents = runtimeService().createIncidentQuery()
+                    .processInstanceId(instance.id).list()
+
+            incidents.size() != 0
+        }
     }
 }
