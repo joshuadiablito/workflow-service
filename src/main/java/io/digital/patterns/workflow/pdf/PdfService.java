@@ -57,13 +57,13 @@ public class PdfService {
     public void requestPdfGeneration(@NotNull SpinJsonNode form,
                                      @NotNull SpinJsonNode formData,
                                      @NotNull String businessKey,
-                                     @NotNull String processInstanceId,
+                                     @NotNull String executionId,
                                      String message) {
         requestPdfGeneration(
                 form,
                 businessKey,
                 null,
-                processInstanceId,
+                executionId,
                 message,
                 formData
         );
@@ -72,29 +72,29 @@ public class PdfService {
 
     public void requestPdfGeneration(@NotNull SpinJsonNode form,
                                      @NotNull String businessKey,
-                                     @NotNull String processInstanceId) {
-        requestPdfGeneration(form, businessKey, null, processInstanceId);
+                                     @NotNull String executionId) {
+        requestPdfGeneration(form, businessKey, null, executionId);
     }
 
 
     public void requestPdfGeneration(@NotNull SpinJsonNode form,
                                      @NotNull String businessKey,
                                      String product,
-                                     @NotNull String processInstanceId) {
-        requestPdfGeneration(form, businessKey, product, processInstanceId, null, null);
+                                     @NotNull String executionId) {
+        requestPdfGeneration(form, businessKey, product, executionId, null, null);
     }
 
     public void requestPdfGeneration(@NotNull SpinJsonNode form,
                                      @NotNull String businessKey,
                                      String product,
-                                     @NotNull String processInstanceId,
+                                     @NotNull String executionId,
                                      String callbackMessage,
                                      SpinJsonNode formData) {
 
         JSONObject formAsJson = new JSONObject(form.toString());
 
-        String productPrefix = environment.getProperty("aws.bucket-name-prefix");
-        String bucket = productPrefix + "-" + Optional.ofNullable(product).orElse("forms");
+        String bucket = environment.getProperty("aws.form-data-bucket-name")
+                + Optional.ofNullable(product).map( i -> "-" + i).orElse("");
         String formApiUrl = environment.getProperty("form-api.url");
         String formName = formAsJson.getString("name");
 
@@ -116,7 +116,7 @@ public class PdfService {
 
             payload.put("webhookUrl", format("%s%s/api/process-instance/webhook/processInstance/%s/message/%s?variableName=%s",
                    environment.getProperty("server.servlet.context-path"),environment.getProperty("engine.webhook.url"),
-                    processInstanceId, message,
+                    executionId, message,
                     formName));
             payload.put("formUrl", format("%s/form/version/%s", formApiUrl, formAsJson.getString("formVersionId")));
 
@@ -134,29 +134,31 @@ public class PdfService {
             log.info("PDF request submitted response status '{}'", response.getStatusCodeValue());
         } catch (Exception e) {
             log.error("Failed to send PDF", e);
+            String configuration = new JSONObject(Map.of(
+                    "formName", formName,
+                    "dataKey", key,
+                    "bucketName", bucket,
+                    "exception", e.getMessage()
+
+            )).toString();
             try {
+
                 runtimeService.createIncident(
                         "FAILED_TO_REQUEST_PDF_GENERATION",
-                        processInstanceId,
-                        new JSONObject(Map.of(
-                                "formName", formName,
-                                "dataKey", key,
-                                "bucketName", bucket,
-                                "exception", e.getMessage()
-
-                        )).toString()
+                        executionId,
+                        configuration
                 );
             } catch (Exception rex) {
                 log.error("Failed to create incident {}", rex.getMessage());
             }
-            throw new BpmnError("failedToGeneratePDF", e.getMessage());
+            throw new BpmnError("FAILED_TO_REQUEST_PDF_GENERATION",configuration, e);
         }
 
     }
 
 
     public void sendPDFs(String senderAddress, List<String> recipients, String body, String subject,
-                         List<String> attachmentIds, String processInstanceId) {
+                         List<String> attachmentIds, String executionId) {
 
 
         if (recipients.isEmpty()) {
@@ -215,7 +217,7 @@ public class PdfService {
             try {
                 runtimeService.createIncident(
                         "FAILED_TO_SEND_SES",
-                        processInstanceId,
+                        executionId,
                         new JSONObject(Map.of(
                                 "exception", e.getMessage()
                         )).toString()
@@ -224,7 +226,7 @@ public class PdfService {
                 log.error("Failed to create incident {}", rex.getMessage());
             }
             log.error("Failed to send SES", e);
-            throw new BpmnError("failedToSendEmail", e.getMessage());
+            throw new BpmnError("FAILED_TO_SEND_SES", e.getMessage(), e);
         }
 
     }

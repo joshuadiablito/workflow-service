@@ -29,6 +29,8 @@ import spock.util.concurrent.PollingConditions
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import static com.github.tomakehurst.wiremock.http.Response.response
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.assertThat
+import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.execute
+import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.job
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.repositoryService
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.runtimeService
 import static org.camunda.spin.Spin.S
@@ -61,7 +63,7 @@ class PdfServiceSpec extends Specification {
     RestTemplate restTemplate
 
     def setupSpec() {
-        System.setProperty("aws.bucket-name-prefix", "test")
+        System.setProperty("aws.form-data-bucket-name", "test")
         System.setProperty('form-api.url', "http://localhost:${wmPort}")
         localstack.start()
     }
@@ -150,11 +152,11 @@ class PdfServiceSpec extends Specification {
 
         then: 'pdf request was successful'
         assertThat(instance).isEnded()
+        assertThat(instance).hasPassed('generatePdf')
 
     }
 
     def 'can raise an incident if s3 fails'() {
-        def conditions = new PollingConditions(timeout: 10, initialDelay: 1.5, factor: 1.25)
         given: 'initial data set up'
         amazonS3.createBucket("test-test")
         amazonS3.putObject(new PutObjectRequest("test-test", "TEST-20200120-000/aForm/xx@x.com-20200128T083155.json",
@@ -167,13 +169,13 @@ class PdfServiceSpec extends Specification {
                 .camundaFormKey('sampleForm')
                 .serviceTask('generatePdf')
                 .camundaAsyncBefore()
-                .camundaAsyncAfter()
                 .name('Generate PDF')
-                .camundaExpression('${pdfService.requestPdfGeneration(form, businessKey, product, execution.getProcessInstanceId())}')
+                .camundaExpression('${pdfService.requestPdfGeneration(form, businessKey, product, execution.getId())}')
                 .camundaInputParameter('form', '${exampleForm.prop(\'form\')}')
                 .camundaInputParameter('product', 'test')
                 .camundaInputParameter('businessKey', '${exampleForm.prop(\'businessKey\').stringValue()}')
-                .endEvent()
+                .camundaAsyncAfter()
+                .endEvent().camundaAsyncBefore().camundaAsyncAfter()
                 .done()
 
         repositoryService().createDeployment().addModelInstance("pdfFailure.bpmn", modelInstance).deploy()
@@ -196,13 +198,15 @@ class PdfServiceSpec extends Specification {
             }
         }''', DataFormats.JSON_DATAFORMAT_NAME)]).execute()
 
+        then: 'process is created'
+        assertThat(instance).isActive()
+
+        when: 'async task is executed'
+        execute(job())
+
         then: 'incident is created'
         assertThat(instance).isActive()
-        conditions.eventually {
-            def incidents = runtimeService().createIncidentQuery()
-                    .processInstanceId(instance.id).list()
-
-            incidents.size() != 0
-        }
+        def incidents = runtimeService().createIncidentQuery().processInstanceId(instance.id).list()
+        incidents.size() != 0
     }
 }

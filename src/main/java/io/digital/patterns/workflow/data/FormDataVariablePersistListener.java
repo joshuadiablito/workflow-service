@@ -37,7 +37,6 @@ public class FormDataVariablePersistListener implements HistoryEventHandler {
     private final RepositoryService repositoryService;
     private final HistoryService historyService;
     private final FormObjectSplitter formObjectSplitter;
-    private final String productPrefix;
 
     @Override
     public void handleEvent(HistoryEvent historyEvent) {
@@ -74,7 +73,7 @@ public class FormDataVariablePersistListener implements HistoryEventHandler {
                         List<String> forms = formObjectSplitter.split(asJson);
                         if (!forms.isEmpty()) {
                             String product =
-                                    productPrefix + "-" + S3_PRODUCT.computeIfAbsent(variable.getProcessDefinitionId(),
+                                    S3_PRODUCT.computeIfAbsent(variable.getProcessDefinitionId(),
                                             id -> getAttribute(
                                                     model, "product",
                                                     s -> s,

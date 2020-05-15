@@ -93,6 +93,7 @@ dependencies {
     implementation 'com.amazonaws:aws-java-sdk-s3:1.11.779'
     implementation 'com.amazonaws:aws-java-sdk-ses:1.11.779'
     implementation 'com.amazonaws:aws-java-sdk-core:1.11.779'
+    implementation 'com.amazonaws:aws-java-sdk-sns:1.11.779'
     implementation 'javax.mail:javax.mail-api:1.6.2'
     implementation 'com.sun.mail:javax.mail:1.6.2'
     compileOnly 'org.projectlombok:lombok'

@@ -1,4 +1,4 @@
-package io.digital.patterns.workflow.data;
+package io.digital.patterns.workflow.aws;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -7,6 +7,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
+import com.amazonaws.services.sns.AmazonSNSClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -45,6 +46,14 @@ public class AwsConfiguration {
        return AmazonSimpleEmailServiceClientBuilder.standard()
                .withRegion(Regions.fromName(awsProperties.getRegion()))
                .withCredentials(credentials()).build();
+    }
+
+    @Bean
+    public AmazonSNSClient amazonSNSClient() {
+       return (AmazonSNSClient) AmazonSNSClient.builder()
+                .withRegion(Regions.fromName(awsProperties.getRegion()))
+                .withCredentials(credentials()).build();
+
     }
 
 }

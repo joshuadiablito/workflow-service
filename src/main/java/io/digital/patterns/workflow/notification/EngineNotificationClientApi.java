@@ -2,6 +2,7 @@ package io.digital.patterns.workflow.notification;
 
 import lombok.extern.slf4j.Slf4j;
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.delegate.BpmnError;
 import org.json.JSONObject;
 import uk.gov.service.notify.*;
 
@@ -192,6 +193,7 @@ public class EngineNotificationClientApi implements NotificationClientApi {
             );
         } catch (Exception rex) {
             log.error("Failed to create incident '{}'", rex.getMessage());
+            throw new BpmnError(NOTIFICATION_FAILURE, e.getMessage(), e);
         }
     }
 }

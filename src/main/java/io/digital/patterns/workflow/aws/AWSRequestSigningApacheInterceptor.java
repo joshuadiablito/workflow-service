@@ -1,4 +1,4 @@
-package io.digital.patterns.workflow.data;
+package io.digital.patterns.workflow.aws;
 
 import com.amazonaws.DefaultRequest;
 import com.amazonaws.auth.AWSCredentialsProvider;

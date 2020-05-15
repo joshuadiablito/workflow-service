@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
+import io.digital.patterns.workflow.aws.AwsProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -28,10 +29,12 @@ public class FormDataService {
 
     private final RuntimeService runtimeService;
     private final AmazonS3 amazonS3;
+    private final AwsProperties awsProperties;
 
-    public FormDataService(RuntimeService runtimeService, AmazonS3 amazonS3) {
+    public FormDataService(RuntimeService runtimeService, AmazonS3 amazonS3, AwsProperties awsProperties) {
         this.runtimeService = runtimeService;
         this.amazonS3 = amazonS3;
+        this.awsProperties = awsProperties;
     }
 
     public String save(String form,
@@ -43,7 +46,7 @@ public class FormDataService {
         try {
             String businessKey = processInstance.getBusinessKey();
             SpinJsonNode json = Spin.JSON(form);
-            String submittedBy = json.jsonPath("$.shiftDetailsContext.email").stringValue();
+            String submittedBy = json.jsonPath("$.form.submittedBy").stringValue();
             formName = json.jsonPath("$.form.name").stringValue();
             String formVersionId = json.jsonPath("$.form.formVersionId").stringValue();
             String title = json.jsonPath("$.form.title").stringValue();
@@ -51,7 +54,9 @@ public class FormDataService {
 
             final String key = key(businessKey, formName, submittedBy, submissionDate);
 
-            boolean dataExists = amazonS3.doesObjectExist(product, key);
+            String bucketName = awsProperties.getBucketName() + "-" +  product;
+
+            boolean dataExists = amazonS3.doesObjectExist(bucketName, key);
             if (!dataExists) {
                 scratchFile
                         = File.createTempFile(UUID.randomUUID().toString(), ".json");

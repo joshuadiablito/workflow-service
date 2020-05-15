@@ -29,7 +29,6 @@ The following properties need to be configured in AWS secrets manager
 * aws.region
 * aws.credentials.access-key
 * aws.credentials.secret-key
-* aws.bucket-name-prefix
 * aws.form-data-bucket-name
 * form-api.url
 * engine.webhook.url

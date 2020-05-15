@@ -38,10 +38,7 @@ public class CamundaConfiguration {
 
     @Configuration
     public static class S3VariablePersistenceConfiguration extends AbstractCamundaConfiguration {
-        @Value("${aws.bucket-name-prefix}")
-        private String productPrefix;
-
-        private final FormDataService formDataService;
+         private final FormDataService formDataService;
 
         public S3VariablePersistenceConfiguration(FormDataService formDataService) {
             this.formDataService = formDataService;
@@ -57,8 +54,7 @@ public class CamundaConfiguration {
                                     processEngineConfiguration.getRuntimeService(),
                                     processEngineConfiguration.getRepositoryService(),
                                     processEngineConfiguration.getHistoryService(),
-                                    new FormObjectSplitter(),
-                                    productPrefix
+                                    new FormObjectSplitter()
                             )));
             log.info("S3 variable persistence configured");
         }

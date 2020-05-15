@@ -1,4 +1,4 @@
-package io.digital.patterns.workflow.data;
+package io.digital.patterns.workflow.aws;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
