@@ -1,6 +1,8 @@
 package io.digital.patterns.workflow;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.digital.patterns.workflow.aws.AwsProperties;
 import io.digital.patterns.workflow.data.FormDataService;
 import io.digital.patterns.workflow.data.FormDataVariablePersistListener;
 import io.digital.patterns.workflow.data.FormObjectSplitter;
@@ -12,7 +14,6 @@ import org.camunda.bpm.spring.boot.starter.configuration.impl.AbstractCamundaCon
 import org.camunda.connect.plugin.impl.ConnectProcessEnginePlugin;
 import org.camunda.spin.impl.json.jackson.format.JacksonJsonDataFormat;
 import org.camunda.spin.plugin.impl.SpinProcessEnginePlugin;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -38,10 +39,13 @@ public class CamundaConfiguration {
 
     @Configuration
     public static class S3VariablePersistenceConfiguration extends AbstractCamundaConfiguration {
-         private final FormDataService formDataService;
 
-        public S3VariablePersistenceConfiguration(FormDataService formDataService) {
-            this.formDataService = formDataService;
+        private final AmazonS3 amazonS3;
+        private final AwsProperties awsProperties;
+
+        public S3VariablePersistenceConfiguration(AmazonS3 amazonS3, AwsProperties awsProperties) {
+            this.amazonS3 = amazonS3;
+            this.awsProperties = awsProperties;
         }
 
 
@@ -50,7 +54,8 @@ public class CamundaConfiguration {
             processEngineConfiguration.setHistoryEventHandler(
                     new CompositeDbHistoryEventHandler(
                             new FormDataVariablePersistListener(
-                                    formDataService,
+                                    new FormDataService(processEngineConfiguration.getRuntimeService(),
+                                            amazonS3, awsProperties),
                                     processEngineConfiguration.getRuntimeService(),
                                     processEngineConfiguration.getRepositoryService(),
                                     processEngineConfiguration.getHistoryService(),
