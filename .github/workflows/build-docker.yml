@@ -8,8 +8,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      IMAGE: 'digitalpatterns/workflow-service/workflow-service-master'
+      IMAGE_DOCKER_HUB: 'digitalpatterns/workflow-service'
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v2
       - uses: joschi/setup-jdk@v1
         with:
           java-version: 'openjdk14'
@@ -21,19 +24,6 @@ jobs:
         run: ./gradlew clean test
       - name: Run tests
         run: ./gradlew clean build
-      - uses: actions/upload-artifact@v2
-        with:
-          name: artifact
-          path: build/libs/workflow-service.jar
-  package:
-    env:
-      IMAGE: 'digitalpatterns/workflow-service/workflow-service-master'
-      IMAGE_DOCKER_HUB: 'digitalpatterns/workflow-service'
-    steps:
-      - uses: actions/checkout@master
-      - uses: actions/download-artifact@v2
-        with:
-          name: artifact
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag ${{ env.IMAGE }}:latest
       - uses: anchore/scan-action@master
