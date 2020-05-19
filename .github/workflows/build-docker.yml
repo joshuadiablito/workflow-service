@@ -8,12 +8,32 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@latest
+      - uses: joschi/setup-jdk@v1
+        with:
+          java-version: 'openjdk14' // The OpenJDK version to make available on the path
+          architecture: 'x64' // defaults to 'x64'
+          openjdk_impl: 'openj9'
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Run tests
+        run: ./gradlew clean test
+      - name: Run tests
+        run: ./gradlew clean build
+      - uses: actions/upload-artifact@v2
+        with:
+          name: artifact
+          path: build/libs/workflow-service.jar
+  package:
     env:
       IMAGE: 'digitalpatterns/workflow-service/workflow-service-master'
       IMAGE_DOCKER_HUB: 'digitalpatterns/workflow-service'
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@master
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag ${{ env.IMAGE }}:latest
       - uses: anchore/scan-action@master
@@ -24,7 +44,6 @@ jobs:
           include-app-packages: true
       - name: anchore inline scan JSON results
         run: cat ./anchore-reports/vulnerabilities.json;
-      - uses: actions/checkout@master
       - name: Publish to Github Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
@@ -42,6 +61,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           cache: true
+          snapshot: true
           tags: "latest"
       - uses: 8398a7/action-slack@v2
         with:

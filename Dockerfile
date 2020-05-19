@@ -1,12 +1,12 @@
-FROM digitalpatterns/jdk:latest
-
-ADD . /app/
+FROM digitalpatterns/jre:latest
 
 WORKDIR /app
 
-USER root
+ADD ./workflow-service.jar /app/
 
-RUN ./gradlew clean build -x test
+USER java
+
+ENTRYPOINT /opt/java/openjdk/bin/java -jar /app/workflow-service.jar
 
 EXPOSE 8080
 
