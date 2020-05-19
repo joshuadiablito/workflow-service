@@ -13,10 +13,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@latest
       - uses: joschi/setup-jdk@v1
         with:
-          java-version: 'openjdk14' // The OpenJDK version to make available on the path
-          architecture: 'x64' // defaults to 'x64'
+          java-version: 'openjdk14'
+          architecture: 'x64'
           openjdk_impl: 'openj9'
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
