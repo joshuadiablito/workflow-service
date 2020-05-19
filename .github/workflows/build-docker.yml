@@ -21,6 +21,8 @@ jobs:
         run: chmod +x gradlew
       - name: Run tests
         run: ./gradlew clean test
+      - name: Run build
+        run: ./gradlew clean build
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag ${{ env.IMAGE }}:latest
       - uses: anchore/scan-action@master
