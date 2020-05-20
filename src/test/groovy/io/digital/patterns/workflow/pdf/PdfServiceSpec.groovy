@@ -63,8 +63,8 @@ class PdfServiceSpec extends Specification {
     RestTemplate restTemplate
 
     def setupSpec() {
-        System.setProperty("aws.form-data-bucket-name", "test")
-        System.setProperty('form-api.url', "http://localhost:${wmPort}")
+        System.setProperty("aws.s3.formData", "test")
+        System.setProperty('formApi.url', "http://localhost:${wmPort}")
         localstack.start()
     }
 

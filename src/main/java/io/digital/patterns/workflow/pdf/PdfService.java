@@ -93,9 +93,9 @@ public class PdfService {
 
         JSONObject formAsJson = new JSONObject(form.toString());
 
-        String bucket = environment.getProperty("aws.form-data-bucket-name")
+        String bucket = environment.getProperty("aws.s3.formData")
                 + Optional.ofNullable(product).map( i -> "-" + i).orElse("");
-        String formApiUrl = environment.getProperty("form-api.url");
+        String formApiUrl = environment.getProperty("formApi.url");
         String formName = formAsJson.getString("name");
 
         String message = Optional.ofNullable(callbackMessage)
@@ -192,7 +192,7 @@ public class PdfService {
             mp.addBodyPart(part);
 
             attachmentIds.forEach(id -> {
-                S3Object object = amazonS3.getObject(environment.getProperty("pdf.generator.aws.s3.pdf.bucketname"), id);
+                S3Object object = amazonS3.getObject(environment.getProperty("aws.s3.pdfs"), id);
                 try {
                     MimeBodyPart attachment = new MimeBodyPart();
                     DataSource dataSource = new ByteArrayDataSource(object.getObjectContent(), "application/pdf");

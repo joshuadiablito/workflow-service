@@ -25,11 +25,8 @@ The following properties need to be configured in AWS secrets manager
 * auth.clientId
 * auth.clientSecret
 * auth.realm
-* gov.notify.api.key
-* aws.region
-* aws.credentials.access-key
-* aws.credentials.secret-key
-* aws.form-data-bucket-name
-* form-api.url
 * engine.webhook.url
-* pdf.generator.aws.s3.pdf.bucketname
+* aws.s3.formData
+* aws.s3.pdfs
+* formApi.url
+* gov.notify.api.key

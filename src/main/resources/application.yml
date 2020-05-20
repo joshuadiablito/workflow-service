@@ -34,11 +34,11 @@ keycloak:
   realm: ${auth.realm:elf}
 
 aws:
-  region: ${aws.region:eu-west-2}
-  bucket-name: ${aws.form-data-bucket-name:}
+  region: ${AWS_REGION:}
+  bucket-name: ${aws.s3.formData:}
   credentials:
-    access-key: ${aws.credentials.access-key:}
-    secret-Key: ${aws.credentials.secret-key:}
+    access-key: ${AWS_ACCESS_KEY:}
+    secret-Key: ${AWS_SECRET_KEY:}
 
 security:
   oauth2:
