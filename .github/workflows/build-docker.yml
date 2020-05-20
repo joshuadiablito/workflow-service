@@ -19,8 +19,8 @@ jobs:
           architecture: 'x64'
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-#      - name: Run tests
-#        run: ./gradlew clean test
+      - name: Run tests
+        run: ./gradlew clean test
       - name: Run build
         run: ./gradlew clean build
       - name: Build the Docker image
@@ -33,6 +33,15 @@ jobs:
           include-app-packages: true
       - name: anchore inline scan JSON results
         run: cat ./anchore-reports/vulnerabilities.json;
+      - name: Publish to Docker Registry
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: ${{ env.IMAGE_DOCKER_HUB }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          cache: true
+          snapshot: true
+          tags: "latest"
       - name: Publish to Github Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
@@ -43,15 +52,6 @@ jobs:
           registry: docker.pkg.github.com
           snapshot: true
           tags: "latest, ${{ github.sha }}"
-      - name: Publish to Docker Registry
-        uses: elgohr/Publish-Docker-Github-Action@master
-        with:
-          name: ${{ env.IMAGE_DOCKER_HUB }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          cache: true
-          snapshot: true
-          tags: "latest"
       - uses: 8398a7/action-slack@v2
         with:
           status: ${{ job.status }}

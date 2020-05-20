@@ -1,5 +1,8 @@
 # Workflow Service
 
+![Service Builder API Test and Build](https://github.com/DigitalPatterns/workflow-service/workflows/Service%20Builder%20API%20Test%20and%20Build/badge.svg)
+
+
 Integrated Camunda engine with Cockpit.
 
 
