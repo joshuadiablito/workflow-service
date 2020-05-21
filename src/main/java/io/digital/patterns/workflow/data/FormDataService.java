@@ -23,7 +23,6 @@ import java.util.UUID;
 import static java.lang.String.format;
 
 @Slf4j
-@Service
 public class FormDataService {
     private static final String FAILED_TO_CREATE_S3_RECORD = "FAILED_TO_CREATE_S3_RECORD";
 
