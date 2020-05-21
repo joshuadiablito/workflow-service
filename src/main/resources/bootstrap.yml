@@ -6,7 +6,7 @@ aws:
   secretsmanager:
     name: workflow-service
     prefix: /secret
-    fail-fast: true
+    fail-fast: false
     profile-separator: _
     enabled: ${AWS_SECRETS_MANAGER_ENABLED:false}
     default-context: application
