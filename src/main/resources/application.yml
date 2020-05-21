@@ -34,7 +34,7 @@ keycloak:
   realm: ${auth.realm:elf}
 
 aws:
-  region: ${AWS_REGION:}
+  region: ${AWS_REGION:eu-west-2}
   bucket-name: ${aws.s3.formData:}
   credentials:
     access-key: ${AWS_ACCESS_KEY:}
