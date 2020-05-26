@@ -21,17 +21,22 @@ The following environment variables are required to load properties from AWS sec
 
 The following properties need to be configured in AWS secrets manager
 
-* database.driver-class-name
-* database.password
-* database.username
-* auth.url
-* auth.clientId
-* auth.clientSecret
-* auth.realm
-* engine.webhook.url
-* aws.s3.formData
-* aws.s3.pdfs
-* formApi.url
-* gov.notify.api.key
+```json5
+{
+  "database.driver-class-name": "org.postgresql.Driver",
+  "database.password": "",
+  "database.username": "admin",
+  "auth.url": "https://keycloak.example.com",
+  "auth.clientId": "servicename",
+  "auth.clientSecret": "secret",
+  "auth.realm": "master",
+  "aws.s3.formData": "bucketName",
+  "aws.s3.pdfs": "bucketName2",
+  "formApi.url": "https://formApi.example.com",
+  "engine.webhook.url": "https://engine-service.example.com",
+  "gov.notify.api.key": "xxxxxx",
+  "database.url": "jdbc:postgresql://dbUrl.example.com:5432/engine?sslmode=require&currentSchema=public"
+}
+```
 
-
+Example helm chart for install [helm - workflowservice](https://github.com/DigitalPatterns/helm/tree/master/workflowservice)
