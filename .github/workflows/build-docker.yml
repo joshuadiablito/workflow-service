@@ -9,8 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      IMAGE: 'ukhomeoffice/workflow-service/workflow-service-master'
-      IMAGE_DOCKER_HUB: 'quay.io/ukhomeofficedigital/workflow-service'
+      IMAGE: 'ukhomeoffice/workflow-service'
     steps:
       - uses: actions/checkout@v2
       - uses: joschi/setup-jdk@v1
@@ -33,15 +32,16 @@ jobs:
           include-app-packages: true
       - name: anchore inline scan JSON results
         run: cat ./anchore-reports/vulnerabilities.json;
-      - name: Publish to Docker Registry
+      - name: Publish to Quay Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
-          name: ${{ env.IMAGE_DOCKER_HUB }}
+          name: ${{ env.IMAGE}}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: quay.io
           cache: true
           snapshot: true
-          tags: "latest"
+          tags: "latest,${{ github.sha }}"
       - uses: 8398a7/action-slack@v2
         with:
           status: ${{ job.status }}
