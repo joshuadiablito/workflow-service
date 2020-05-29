@@ -68,11 +68,11 @@ pipeline:
       target: AWS_SECRET_KEY
     - source: DEV_WORKFLOW_SERVICE_AWS_SECRETS_MANAGER_ENABLED
       target: AWS_SECRETS_MANAGER_ENABLED
-    - source: DEV_WORKFLOW_SERVICE_NAME
+    - source: WORKFLOW_SERVICE_NAME
       target: WORKFLOW_SERVICE_NAME
     - source: DEV_WORKFLOW_SERVICE_URL
       target: WORKFLOW_SERVICE_URL
-    - source: DEV_WORKFLOW_SERVICE_IMAGE
+    - source: WORKFLOW_SERVICE_IMAGE
       target: WORKFLOW_SERVICE_IMAGE
     commands:
       - export SPRING_PROFILES_ACTIVE="dev"
