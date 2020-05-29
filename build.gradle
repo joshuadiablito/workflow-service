@@ -54,15 +54,15 @@ jacocoTestReport {
 
 dependencyManagement {
     imports {
-        mavenBom 'org.camunda.bpm:camunda-bom:7.13.0-alpha4'
+        mavenBom 'org.camunda.bpm:camunda-bom:7.13.0'
     }
 }
 
 
 dependencies {
-    implementation ('org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter')
-    implementation ('org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-rest')
-    implementation ('org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-webapp')
+    implementation ('org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter:7.13.0')
+    implementation ('org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-rest:7.13.0')
+    implementation ('org.camunda.bpm.springboot:camunda-bpm-spring-boot-starter-webapp:7.13.0')
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation group: 'org.camunda.bpm.extension', name: 'camunda-bpm-identity-keycloak', version: '1.5.0'
     implementation('org.camunda.connect:camunda-connect-core:1.4.0')
