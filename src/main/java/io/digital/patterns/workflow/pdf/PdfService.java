@@ -96,6 +96,7 @@ public class PdfService {
         String bucket = environment.getProperty("aws.s3.formData")
                 + Optional.ofNullable(product).map( i -> "-" + i).orElse("");
         String formApiUrl = environment.getProperty("formApi.url");
+        log.info("Form api url '{}'", formApiUrl);
         String formName = formAsJson.getString("name");
 
         String message = Optional.ofNullable(callbackMessage)
