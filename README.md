@@ -5,6 +5,7 @@
 
 Integrated Camunda engine with Cockpit.
 
+### Environment
 
 #### Bootstrap configuration
 
@@ -40,3 +41,11 @@ The following properties need to be configured in AWS secrets manager
 ```
 
 Example helm chart for install [helm - workflowservice](https://github.com/DigitalPatterns/helm/tree/master/workflowservice)
+
+### Drone
+
+Drone is only used for deployment as the Github Action workflow is used to push to quay. To deploy you will need to pass the commit tag
+
+```
+drone deploy --param WORKFLOW_SERVICE_TAG=sha UKHomeOffice/workflow-service <build number> <environment>
+```
