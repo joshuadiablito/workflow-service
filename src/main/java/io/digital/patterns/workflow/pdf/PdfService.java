@@ -133,7 +133,7 @@ public class PdfService {
 
             log.info("PDF request submitted response status '{}'", response.getStatusCodeValue());
         } catch (Exception e) {
-            log.error("Failed to send PDF", e);
+            log.error("Failed to send PDF '{}'", e.getMessage());
             String configuration = new JSONObject(Map.of(
                     "formName", formName,
                     "dataKey", key,
