@@ -105,6 +105,7 @@ public class PdfService {
 
         try {
             if (formData == null) {
+                log.info("Bucket name '{}' and key '{}'", bucket, key);
                 S3Object object = amazonS3.getObject(bucket, key);
                 String asJsonString = IOUtils.toString(object.getObjectContent(),
                         StandardCharsets.UTF_8.toString());
