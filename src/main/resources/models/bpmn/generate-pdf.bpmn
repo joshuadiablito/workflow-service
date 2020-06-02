@@ -160,7 +160,7 @@ execution.setVariable("attachmentIds", attachmentIds);</camunda:script>
       </bpmn:extensionElements>
       <bpmn:outgoing>SequenceFlow_0pxxy0p</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:serviceTask id="sendpdfs" name="Send PDF" camunda:asyncBefore="true" camunda:expression="${pdfService.sendPDFs(senderAddress, recipients, body, subject, attachmentIds, execution.getProcessInstanceId())}">
+    <bpmn:serviceTask id="sendpdfs" name="Send PDF" camunda:asyncBefore="true" camunda:expression="${pdfService.sendPDFs(senderAddress, recipients, body, subject, attachmentIds, execution)}">
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="senderAddress">${environment.getProperty('ses.from.address')}</camunda:inputParameter>

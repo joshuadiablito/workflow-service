@@ -160,7 +160,7 @@ public class PdfService {
 
 
     public void sendPDFs(String senderAddress, List<String> recipients, String body, String subject,
-                         List<String> attachmentIds, String executionId) {
+                         List<String> attachmentIds, Execution execution) {
 
 
         if (recipients.isEmpty()) {
@@ -216,10 +216,11 @@ public class PdfService {
 
             log.info("SES send result {}", result.getMessageId());
         } catch (Exception e) {
+            log.error("Failed to send SES '{}'", e.getMessage());
             try {
                 runtimeService.createIncident(
                         "FAILED_TO_SEND_SES",
-                        executionId,
+                        execution.getId(),
                         new JSONObject(Map.of(
                                 "exception", e.getMessage()
                         )).toString()
