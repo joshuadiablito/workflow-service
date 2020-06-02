@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_0tpithz" targetNamespace="Service Task" exporter="Camunda Modeler" exporterVersion="3.7.3">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_0tpithz" targetNamespace="Service Task" exporter="Camunda Modeler" exporterVersion="3.7.1">
   <bpmn:collaboration id="Collaboration_0vkjzw7">
     <bpmn:participant id="Participant_0rvftts" name="PDF Generation" processRef="generate-pdf" />
     <bpmn:participant id="Participant_0f95rek" name="PDF Service" />
@@ -33,7 +33,7 @@ message</camunda:script>
         <bpmn:outgoing>SequenceFlow_1s755ya</bpmn:outgoing>
       </bpmn:startEvent>
       <bpmn:sequenceFlow id="SequenceFlow_1s755ya" sourceRef="StartEvent_1io86xf" targetRef="generatePdf" />
-      <bpmn:sendTask id="generatePdf" name="Generate PDF" camunda:expression="${pdfService.requestPdfGeneration(form, businessKey, execution.getId())}">
+      <bpmn:sendTask id="generatePdf" name="Generate PDF" camunda:expression="${pdfService.requestPdfGeneration(form, businessKey, execution)}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
             <camunda:inputParameter name="form">${form}</camunda:inputParameter>

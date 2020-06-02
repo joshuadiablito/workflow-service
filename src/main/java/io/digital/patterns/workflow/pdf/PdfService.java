@@ -12,6 +12,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.delegate.BpmnError;
+import org.camunda.bpm.engine.runtime.Execution;
 import org.camunda.spin.json.SpinJsonNode;
 import org.json.JSONObject;
 import org.springframework.core.env.Environment;
@@ -57,13 +58,13 @@ public class PdfService {
     public void requestPdfGeneration(@NotNull SpinJsonNode form,
                                      @NotNull SpinJsonNode formData,
                                      @NotNull String businessKey,
-                                     @NotNull String executionId,
+                                     @NotNull Execution execution,
                                      String message) {
         requestPdfGeneration(
                 form,
                 businessKey,
                 null,
-                executionId,
+                execution,
                 message,
                 formData
         );
@@ -72,22 +73,22 @@ public class PdfService {
 
     public void requestPdfGeneration(@NotNull SpinJsonNode form,
                                      @NotNull String businessKey,
-                                     @NotNull String executionId) {
-        requestPdfGeneration(form, businessKey, null, executionId);
+                                     @NotNull Execution execution) {
+        requestPdfGeneration(form, businessKey, null, execution);
     }
 
 
     public void requestPdfGeneration(@NotNull SpinJsonNode form,
                                      @NotNull String businessKey,
                                      String product,
-                                     @NotNull String executionId) {
-        requestPdfGeneration(form, businessKey, product, executionId, null, null);
+                                     @NotNull Execution execution) {
+        requestPdfGeneration(form, businessKey, product, execution, null, null);
     }
 
     public void requestPdfGeneration(@NotNull SpinJsonNode form,
                                      @NotNull String businessKey,
                                      String product,
-                                     @NotNull String executionId,
+                                     @NotNull Execution execution,
                                      String callbackMessage,
                                      SpinJsonNode formData) {
 
@@ -96,7 +97,6 @@ public class PdfService {
         String bucket = environment.getProperty("aws.s3.formData")
                 + Optional.ofNullable(product).map( i -> "-" + i).orElse("");
         String formApiUrl = environment.getProperty("formApi.url");
-        log.info("Form api url '{}'", formApiUrl);
         String formName = formAsJson.getString("name");
 
         String message = Optional.ofNullable(callbackMessage)
@@ -115,10 +115,9 @@ public class PdfService {
                 payload.put("submission",  new JSONObject().put("data", new JSONObject(formData.toString())));
             }
 
-
-            payload.put("webhookUrl", format("%s%s/api/process-instance/webhook/processInstance/%s/message/%s?variableName=%s",
-                   environment.getProperty("server.servlet.context-path"),environment.getProperty("engine.webhook.url"),
-                    executionId, message,
+            payload.put("webhookUrl", format("%s%s/webhook/process-instance/webhook/%s/message/%s?variableName=%s"
+                  ,environment.getProperty("engine.webhook.url"), environment.getProperty("server.servlet.context-path"),
+                    execution.getProcessInstanceId(), message,
                     formName));
             payload.put("formUrl", format("%s/form/version/%s", formApiUrl, formAsJson.getString("formVersionId")));
 
@@ -126,8 +125,9 @@ public class PdfService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> body = new HttpEntity<>(payload.toString(), headers);
 
+            String url = format("%s/pdf", formApiUrl);
             ResponseEntity<String> response = restTemplate.exchange(
-                    format("%s/pdf", formApiUrl),
+                    url,
                     HttpMethod.POST,
                     body,
                     String.class
@@ -147,7 +147,7 @@ public class PdfService {
 
                 runtimeService.createIncident(
                         "FAILED_TO_REQUEST_PDF_GENERATION",
-                        executionId,
+                        execution.getId(),
                         configuration
                 );
             } catch (Exception rex) {
