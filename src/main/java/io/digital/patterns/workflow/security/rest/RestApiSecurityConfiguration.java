@@ -43,7 +43,6 @@ public class RestApiSecurityConfiguration extends ResourceServerConfigurerAdapte
                 .csrf().ignoringAntMatchers("/api/**", "/engine-rest/**", "/webhook/**")
                 .and()
                 .antMatcher("/engine-rest/**")
-                .antMatcher("/webhook/**")
                 .authorizeRequests()
                 .antMatchers(ENGINE).permitAll()
                 .antMatchers(ACTUATOR_HEALTH).permitAll()
