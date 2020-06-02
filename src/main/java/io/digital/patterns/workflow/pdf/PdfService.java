@@ -115,7 +115,7 @@ public class PdfService {
                 payload.put("submission",  new JSONObject().put("data", new JSONObject(formData.toString())));
             }
 
-            payload.put("webhookUrl", format("%s%s/webhook/process-instance/webhook/%s/message/%s?variableName=%s"
+            payload.put("webhookUrl", format("%s%s/webhook/process-instance/%s/message/%s?variableName=%s"
                   ,environment.getProperty("engine.webhook.url"), environment.getProperty("server.servlet.context-path"),
                     execution.getProcessInstanceId(), message,
                     formName));
