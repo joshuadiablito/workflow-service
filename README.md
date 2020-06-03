@@ -49,3 +49,22 @@ Drone is only used for deployment as the Github Action workflow is used to push 
 ```
 drone deploy --param WORKFLOW_SERVICE_TAG=sha UKHomeOffice/workflow-service <build number> <environment>
 ```
+
+
+### Changing log levels
+
+You can update the log levels at runtime by using the following POST command:
+
+```js
+http://localhost:8080/camunda/actuator/loggers/org.springframework.security
+```
+
+with a payload:
+
+```json
+{"configuredLevel": "DEBUG"}
+```
+
+***You will need a valid JWT token***
+
+For more information please check [here](https://www.baeldung.com/spring-boot-changing-log-level-at-runtime)
