@@ -5,8 +5,10 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder
 import com.amazonaws.services.simpleemail.model.VerifyEmailIdentityRequest
+import com.amazonaws.services.sns.AmazonSNSClient
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import com.github.tomjankes.wiremock.WireMockGroovy
+import io.digital.patterns.workflow.notification.AmazonSMSService
 import io.digital.patterns.workflow.pdf.PdfService
 import org.camunda.bpm.engine.runtime.ProcessInstance
 import org.camunda.bpm.engine.test.Deployment
@@ -28,32 +30,25 @@ import static com.github.tomakehurst.wiremock.http.Response.response
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.*
 import static org.camunda.spin.Spin.S
 
-@Deployment(resources = ['./models/bpmn/send-ses.bpmn'])
-class SendSesBpmnSpec extends Specification {
-
-    def static wmPort = 8000
-
+@Deployment(resources = ['./models/bpmn/send-notifications.bpmn'])
+class SendNotificationBpmnSpec extends Specification {
 
     @ClassRule
     @Shared
     ProcessEngineRule engineRule = new ProcessEngineRule()
 
-    @ClassRule
-    @Shared
-    WireMockRule wireMockRule = new WireMockRule(wmPort)
-
 
     @Shared
     static LocalStackContainer localstack =
-            new LocalStackContainer().withServices(LocalStackContainer.Service.SES)
+            new LocalStackContainer().withServices(LocalStackContainer.Service.SES, LocalStackContainer.Service.SNS)
 
 
-    public wireMockStub = new WireMockGroovy(wmPort)
 
     AmazonS3 amazonS3
     PdfService pdfService
     Environment environment
     AmazonSimpleEmailService amazonSimpleEmailService
+    AmazonSMSService amazonSMSService
     RestTemplate restTemplate
 
     def setupSpec() {
@@ -74,11 +69,18 @@ class SendSesBpmnSpec extends Specification {
         restTemplate = new RestTemplate()
         environment = new StandardEnvironment()
 
+
+        def client = (AmazonSNSClient) AmazonSNSClient.builder()
+                .withEndpointConfiguration(localstack.getEndpointConfiguration(LocalStackContainer.Service.SNS))
+                .withCredentials(localstack.getDefaultCredentialsProvider()).build()
+
+
         amazonS3 = AmazonS3ClientBuilder.standard()
                 .withCredentials(localstack.getDefaultCredentialsProvider())
                 .withEndpointConfiguration(localstack.getEndpointConfiguration(LocalStackContainer.Service.S3))
                 .enablePathStyleAccess()
                 .build()
+        amazonSMSService = new AmazonSMSService( client)
 
         amazonSimpleEmailService =
                 AmazonSimpleEmailServiceClientBuilder.standard()
@@ -93,19 +95,8 @@ class SendSesBpmnSpec extends Specification {
         )
         Mocks.register('pdfService', pdfService)
         Mocks.register('environment', environment)
+        Mocks.register('amazonSMSService', amazonSMSService)
 
-        wireMockStub.stub {
-            request {
-                method 'POST'
-                url '/pdf'
-            }
-            response {
-                status: 200
-                headers {
-                    "Content-Type" "application/json"
-                }
-            }
-        }
 
         amazonSimpleEmailService
                 .verifyEmailIdentity(new VerifyEmailIdentityRequest().withEmailAddress("from@from.com"))
@@ -116,16 +107,23 @@ class SendSesBpmnSpec extends Specification {
 
     def 'can send email'() {
         given: 'forms that a user has selected'
-        def sendSES = S('''{
-                            "businessKey" : "businessKey"
-                            }''', DataFormats.JSON_DATAFORMAT_NAME)
+        def notificationPayload = S('''
+                                            {
+                                             "businessKey" : "businessKey",
+                                              "email" : {
+                                                "recipients" : [
+                                                  "test@test.com",
+                                                  "appples@test.com"
+                                                ]
+                                              }
+                                            }''', DataFormats.JSON_DATAFORMAT_NAME)
 
 
         when: 'a request to initiate pdf has been submitted'
         ProcessInstance instance = runtimeService()
-                .createProcessInstanceByKey('send-ses')
+                .createProcessInstanceByKey('send-notification')
                 .businessKey('businessKey')
-                .setVariables(['sendSES' : sendSES, 'initiatedBy': 'test@test.com']).execute()
+                .setVariables(['notificationPayload' : notificationPayload, 'initiatedBy': 'test@test.com']).execute()
 
 
         then: 'process instance should be active'
@@ -138,6 +136,40 @@ class SendSesBpmnSpec extends Specification {
         then: 'email is sent'
         Assert.assertThat(taskQuery().processInstanceId(instance.id).list().size(), Matchers.is(0))
         assertThat(instance).hasPassed('sendSES')
+    }
+
+    def 'can send sms'() {
+        given: 'forms that a user has selected'
+        def notificationPayload = S('''
+                                            {
+                                             "businessKey" : "businessKey",
+                                              "sms" : {
+                                                "message" : "Hello",
+                                                "phoneNumbers": [
+                                                  "0124444343434",
+                                                  "0343434433434"
+                                                ]
+                                              }
+                                            }''', DataFormats.JSON_DATAFORMAT_NAME)
+
+
+        when: 'a request to initiate pdf has been submitted'
+        ProcessInstance instance = runtimeService()
+                .createProcessInstanceByKey('send-notification')
+                .businessKey('businessKey')
+                .setVariables(['notificationPayload' : notificationPayload, 'initiatedBy': 'test@test.com']).execute()
+
+
+        then: 'process instance should be active'
+        assertThat(instance).isActive()
+        assertThat(instance).isWaitingAt('start')
+
+        when: 'send is executed'
+        execute(job())
+
+        then: 'sms is sent'
+        Assert.assertThat(taskQuery().processInstanceId(instance.id).list().size(), Matchers.is(0))
+        assertThat(instance).hasPassed('sendSMSs')
     }
 
 }
