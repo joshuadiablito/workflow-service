@@ -130,7 +130,7 @@ class SendSesBpmnSpec extends Specification {
 
         then: 'process instance should be active'
         assertThat(instance).isActive()
-        assertThat(instance).isWaitingAt('sendSES')
+        assertThat(instance).isWaitingAt('start')
 
         when: 'send is executed'
         execute(job())

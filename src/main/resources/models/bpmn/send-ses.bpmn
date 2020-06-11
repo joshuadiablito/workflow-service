@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_0tpithz" targetNamespace="Service Task" exporter="Camunda Modeler" exporterVersion="4.0.0">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_0tpithz" targetNamespace="Service Task" exporter="Camunda Modeler" exporterVersion="3.7.1">
   <bpmn:collaboration id="Collaboration_0vkjzw7">
     <bpmn:participant id="Participant_0rvftts" name="Send SES" processRef="send-ses" />
     <bpmn:participant id="Participant_086vbsd" name="AWS SES" />
     <bpmn:messageFlow id="MessageFlow_1xo8wra" sourceRef="sendSES" targetRef="Participant_086vbsd" />
   </bpmn:collaboration>
   <bpmn:process id="send-ses" name="Send SES" isExecutable="true" camunda:isStartableInTasklist="false">
-    <bpmn:startEvent id="start" name="Email requested">
+    <bpmn:startEvent id="start" name="Email requested" camunda:asyncBefore="true">
       <bpmn:extensionElements>
         <camunda:executionListener event="start">
           <camunda:script scriptFormat="Groovy">def attachmentIds = new ArrayList()
@@ -15,7 +15,7 @@ execution.setVariable("attachmentIds", attachmentIds);</camunda:script>
       </bpmn:extensionElements>
       <bpmn:outgoing>SequenceFlow_0pxxy0p</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:serviceTask id="sendSES" name="Send Email" camunda:asyncBefore="true" camunda:expression="${pdfService.sendPDFs(senderAddress, recipients, body, subject, attachmentIds, execution)}">
+    <bpmn:serviceTask id="sendSES" name="Send Email" camunda:expression="${pdfService.sendPDFs(senderAddress, recipients, body, subject, attachmentIds, execution)}">
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="senderAddress">${environment.getProperty('ses.from.address')}</camunda:inputParameter>
