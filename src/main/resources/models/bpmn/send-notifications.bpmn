@@ -20,7 +20,7 @@
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_1lvdla0" sourceRef="sendSES" targetRef="Gateway_1dteb2l" />
     <bpmn:sequenceFlow id="Flow_0oe1m0x" sourceRef="Gateway_1dteb2l" targetRef="EndEvent_11l4d1r" />
-    <bpmn:serviceTask id="sendSES" name="Send Email" camunda:expression="${pdfService.sendPDFs(senderAddress, recipients, body, subject, attachmentIds, execution)}">
+    <bpmn:serviceTask id="sendSES" name="Send Email" camunda:expression="${pdfService.sendPDFs(senderAddress, recipients, body, subject, attachmentIds)}">
       <bpmn:extensionElements>
         <camunda:inputOutput>
           <camunda:inputParameter name="senderAddress">${environment.getProperty('ses.from.address')}</camunda:inputParameter>
@@ -114,7 +114,7 @@ recipients;</camunda:script>
     <bpmn:subProcess id="sendSMSs">
       <bpmn:incoming>Flow_0t6eifh</bpmn:incoming>
       <bpmn:outgoing>Flow_190ulkf</bpmn:outgoing>
-      <bpmn:multiInstanceLoopCharacteristics isSequential="true" camunda:collection="${S(notificationPayload).prop(&#39;sms&#39;).prop(&#39;phoneNumbers&#39;).elements()}" camunda:elementVariable="phoneNumber" />
+      <bpmn:multiInstanceLoopCharacteristics camunda:collection="${S(notificationPayload).prop(&#39;sms&#39;).prop(&#39;phoneNumbers&#39;).elements()}" camunda:elementVariable="phoneNumber" />
       <bpmn:startEvent id="Event_0ywle2u">
         <bpmn:outgoing>Flow_075f62j</bpmn:outgoing>
       </bpmn:startEvent>
@@ -134,7 +134,7 @@ recipients;</camunda:script>
         <bpmn:errorEventDefinition id="ErrorEventDefinition_17t1eap" errorRef="Error_1jp51nb" camunda:errorCodeVariable="snsFailureCode" camunda:errorMessageVariable="snsFailureMessage" />
       </bpmn:boundaryEvent>
       <bpmn:userTask id="Activity_17jorw6" name="Investigate SNS failure ${snsFailureCode}" camunda:candidateGroups="process_admin" camunda:dueDate="${now()}">
-        <bpmn:documentation>Failed to send SMS via SNS due to ${snsFailureCode} with underlying exception ${sbsFailureMessage}</bpmn:documentation>
+        <bpmn:documentation>Failed to send SMS via SNS due to ${snsFailureCode} with underlying exception ${snsFailureMessage}</bpmn:documentation>
         <bpmn:incoming>Flow_0xfskv2</bpmn:incoming>
         <bpmn:outgoing>Flow_11zym06</bpmn:outgoing>
       </bpmn:userTask>

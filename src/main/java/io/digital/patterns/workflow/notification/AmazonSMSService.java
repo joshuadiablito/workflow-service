@@ -4,6 +4,7 @@ import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.delegate.BpmnError;
 import org.json.JSONObject;
@@ -23,9 +24,10 @@ public class AmazonSMSService {
     }
 
     public String sendSMS(String phoneNumber, String message) {
+        log.info("Sending SMS message to {}", phoneNumber);
         try {
-            Assert.notNull(phoneNumber, "Phone number cannot be null");
-            Assert.notNull(message, "Message cannot be null");
+            Assert.isTrue(StringUtils.isNotBlank(phoneNumber), "Phone number cannot be null or empty");
+            Assert.isTrue(StringUtils.isNotBlank(message), "Message cannot be null or empty");
 
             PublishResult result = amazonSNSClient.publish(new PublishRequest()
                     .withMessage(message)

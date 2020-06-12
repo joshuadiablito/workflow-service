@@ -50,6 +50,7 @@ class SendNotificationBpmnSpec extends Specification {
     AmazonSimpleEmailService amazonSimpleEmailService
     AmazonSMSService amazonSMSService
     RestTemplate restTemplate
+    AmazonSNSClient client
 
     def setupSpec() {
         System.setProperty("ses.from.address", "from@from.com")
@@ -66,11 +67,12 @@ class SendNotificationBpmnSpec extends Specification {
 
 
     def setup() {
+
         restTemplate = new RestTemplate()
         environment = new StandardEnvironment()
 
 
-        def client = (AmazonSNSClient) AmazonSNSClient.builder()
+        client = (AmazonSNSClient) AmazonSNSClient.builder()
                 .withEndpointConfiguration(localstack.getEndpointConfiguration(LocalStackContainer.Service.SNS))
                 .withCredentials(localstack.getDefaultCredentialsProvider()).build()
 
@@ -106,7 +108,7 @@ class SendNotificationBpmnSpec extends Specification {
 
 
     def 'can send email'() {
-        given: 'forms that a user has selected'
+        given: 'a notification payload for email only'
         def notificationPayload = S('''
                                             {
                                              "businessKey" : "businessKey",
@@ -119,7 +121,7 @@ class SendNotificationBpmnSpec extends Specification {
                                             }''', DataFormats.JSON_DATAFORMAT_NAME)
 
 
-        when: 'a request to initiate pdf has been submitted'
+        when: 'a request to send email is submitted'
         ProcessInstance instance = runtimeService()
                 .createProcessInstanceByKey('send-notification')
                 .businessKey('businessKey')
@@ -139,7 +141,7 @@ class SendNotificationBpmnSpec extends Specification {
     }
 
     def 'can send sms'() {
-        given: 'forms that a user has selected'
+        given: 'a notification payload for SMS only'
         def notificationPayload = S('''
                                             {
                                              "businessKey" : "businessKey",
@@ -153,7 +155,7 @@ class SendNotificationBpmnSpec extends Specification {
                                             }''', DataFormats.JSON_DATAFORMAT_NAME)
 
 
-        when: 'a request to initiate pdf has been submitted'
+        when: 'a request to send sms is made'
         ProcessInstance instance = runtimeService()
                 .createProcessInstanceByKey('send-notification')
                 .businessKey('businessKey')
@@ -170,6 +172,85 @@ class SendNotificationBpmnSpec extends Specification {
         then: 'sms is sent'
         Assert.assertThat(taskQuery().processInstanceId(instance.id).list().size(), Matchers.is(0))
         assertThat(instance).hasPassed('sendSMSs')
+    }
+
+
+    def 'can send both SMS and email'() {
+        given: 'a notification payload for both sms and email'
+        def notificationPayload = S('''
+                                            {
+                                             "businessKey" : "businessKey",
+                                              "email" : {
+                                                "recipients" : [
+                                                  "test@test.com",
+                                                  "appples@test.com"
+                                                ]
+                                              },
+                                              "sms" : {
+                                                "message" : "Hello",
+                                                "phoneNumbers": [
+                                                  "0124444343434",
+                                                  "0343434433434"
+                                                ]
+                                              }
+                                            }''', DataFormats.JSON_DATAFORMAT_NAME)
+
+
+        when: 'a request to send both email and sms is submitted'
+        ProcessInstance instance = runtimeService()
+                .createProcessInstanceByKey('send-notification')
+                .businessKey('businessKey')
+                .setVariables(['notificationPayload' : notificationPayload, 'initiatedBy': 'test@test.com']).execute()
+
+
+        then: 'process instance should be active'
+        assertThat(instance).isActive()
+        assertThat(instance).isWaitingAt('start')
+
+        when: 'send is executed'
+        execute(job())
+
+        then: 'sms is sent'
+        Assert.assertThat(taskQuery().processInstanceId(instance.id).list().size(), Matchers.is(0))
+        assertThat(instance).hasPassed('sendSMSs')
+
+        and: 'email sent'
+        assertThat(instance).hasPassed('sendSES')
+
+        and: 'process instance completed'
+        assertThat(instance).isEnded()
+    }
+
+    def 'support task created if SMS fails'() {
+        given: 'a notification payload for SMS only'
+        def notificationPayload = S('''
+                                            {
+                                             "businessKey" : "businessKey",
+                                              "sms" : {
+                                                "message" : "Hello",
+                                                "phoneNumbers": [
+                                                  "",
+                                                  ""
+                                                ]
+                                              }
+                                            }''', DataFormats.JSON_DATAFORMAT_NAME)
+
+
+        when: 'a request to send sms is made'
+        ProcessInstance instance = runtimeService()
+                .createProcessInstanceByKey('send-notification')
+                .businessKey('businessKey')
+                .setVariables(['notificationPayload' : notificationPayload, 'initiatedBy': 'test@test.com']).execute()
+
+        then: 'process instance should be active'
+        assertThat(instance).isActive()
+        assertThat(instance).isWaitingAt('start')
+
+        when: 'send is executed'
+        execute(job())
+
+        then: 'user support task should be created'
+        Assert.assertThat(taskQuery().processInstanceId(instance.id).count(), Matchers.is(2L))
     }
 
 }
