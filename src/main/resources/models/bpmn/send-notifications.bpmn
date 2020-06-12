@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_0tpithz" targetNamespace="Service Task" exporter="Camunda Modeler" exporterVersion="3.7.1">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_0tpithz" targetNamespace="Support task" exporter="Camunda Modeler" exporterVersion="3.7.1">
   <bpmn:collaboration id="Collaboration_0vkjzw7">
     <bpmn:participant id="Participant_0rvftts" name="Send Notification" processRef="send-notification" />
     <bpmn:participant id="Participant_086vbsd" name="AWS SES" />
@@ -114,14 +114,13 @@ recipients;</camunda:script>
     <bpmn:subProcess id="sendSMSs">
       <bpmn:incoming>Flow_0t6eifh</bpmn:incoming>
       <bpmn:outgoing>Flow_190ulkf</bpmn:outgoing>
-      <bpmn:multiInstanceLoopCharacteristics camunda:collection="${S(notificationPayload).prop(&#39;sms&#39;).prop(&#39;phoneNumbers&#39;).elements()}" camunda:elementVariable="phoneNumber" />
+      <bpmn:multiInstanceLoopCharacteristics camunda:collection="${phoneNumbers}" camunda:elementVariable="phoneNumber" />
       <bpmn:startEvent id="Event_0ywle2u">
         <bpmn:outgoing>Flow_075f62j</bpmn:outgoing>
       </bpmn:startEvent>
       <bpmn:serviceTask id="sendSMS" name="Send SMS" camunda:expression="${amazonSMSService.sendSMS(phoneNumber, message)}">
         <bpmn:extensionElements>
           <camunda:inputOutput>
-            <camunda:inputParameter name="phoneNumber">${S(phoneNumber).stringValue()}</camunda:inputParameter>
             <camunda:inputParameter name="message">${S(notificationPayload).prop("sms").prop("message").stringValue()}</camunda:inputParameter>
           </camunda:inputOutput>
         </bpmn:extensionElements>
@@ -147,6 +146,20 @@ recipients;</camunda:script>
       <bpmn:sequenceFlow id="Flow_18so5ti" sourceRef="sendSMS" targetRef="Event_0c4an4i" />
     </bpmn:subProcess>
     <bpmn:sequenceFlow id="Flow_0t6eifh" sourceRef="Gateway_06c3hvb" targetRef="sendSMSs">
+      <bpmn:extensionElements>
+        <camunda:executionListener event="take">
+          <camunda:script scriptFormat="Groovy">
+def notificationPayload  = execution.getVariable("notificationPayload");
+
+def numbers = new ArrayList();
+
+notificationPayload.prop('sms').prop('phoneNumbers').elements().each {
+  it -&gt; numbers.add(it.stringValue());
+}
+execution.setVariable('phoneNumbers' ,numbers);
+</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${S(notificationPayload).hasProp('sms') == true}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_190ulkf" sourceRef="sendSMSs" targetRef="Gateway_1dteb2l" />
