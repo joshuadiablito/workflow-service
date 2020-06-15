@@ -25,14 +25,6 @@ jobs:
         run: ./gradlew clean build
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag ${{ env.IMAGE }}:latest
-      - uses: anchore/scan-action@master
-        with:
-          image-reference: "${{ env.IMAGE }}:latest"
-          dockerfile-path: "./Dockerfile"
-          fail-build: false
-          include-app-packages: true
-      - name: anchore inline scan JSON results
-        run: cat ./anchore-reports/vulnerabilities.json;
       - name: Publish to Docker Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
@@ -50,3 +42,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # optional
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }} # required
         if: always() # Pick up events even if the job fails or is canceled.
+      - uses: anchore/scan-action@master
+        with:
+          image-reference: "${{ env.IMAGE }}:latest"
+          dockerfile-path: "./Dockerfile"
+          fail-build: false
+          include-app-packages: true
+      - name: anchore inline scan JSON results
+        run: cat ./anchore-reports/vulnerabilities.json;
