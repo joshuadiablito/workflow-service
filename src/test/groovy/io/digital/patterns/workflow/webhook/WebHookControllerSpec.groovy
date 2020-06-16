@@ -20,6 +20,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.http.MediaType
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -78,6 +79,9 @@ class WebHookControllerSpec extends Specification {
 
     @SpringBean
     private ClientRegistrationRepository clientRegistrationRepository = Mock()
+
+    @SpringBean
+    private JwtDecoder jwtDecoder = Mock()
 
     def setup() {
         mvc = MockMvcBuilders

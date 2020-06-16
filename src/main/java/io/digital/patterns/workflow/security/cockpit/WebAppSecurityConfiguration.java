@@ -10,7 +10,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.context.request.RequestContextListener;
 
@@ -24,9 +24,9 @@ public class WebAppSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final KeycloakLogoutHandler keycloakLogoutHandler;
 
-    private final NimbusJwtDecoder jwtDecoder;
+    private final JwtDecoder jwtDecoder;
 
-    public WebAppSecurityConfiguration(KeycloakLogoutHandler keycloakLogoutHandler, NimbusJwtDecoder jwtDecoder) {
+    public WebAppSecurityConfiguration(KeycloakLogoutHandler keycloakLogoutHandler, JwtDecoder jwtDecoder) {
         this.keycloakLogoutHandler = keycloakLogoutHandler;
         this.jwtDecoder = jwtDecoder;
     }
