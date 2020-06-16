@@ -18,7 +18,7 @@ import java.io.IOException;
 @Service
 @Slf4j
 public class KeycloakLogoutHandler implements LogoutSuccessHandler {
-
+    public static final String DEFAULT_AUTHORIZATION_REQUEST_BASE_URI = "/oauth2/authorization";
 
     private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
@@ -36,9 +36,9 @@ public class KeycloakLogoutHandler implements LogoutSuccessHandler {
             throws IOException, ServletException {
         if (!StringUtils.isEmpty(oauth2UserLogoutUri)) {
             String requestUrl = request.getRequestURL().toString();
-            String redirectUri = requestUrl.substring(0, requestUrl.indexOf("/app")) + "/login";
+            String redirectUri = requestUrl.substring(0, requestUrl.indexOf("/app"));
 
-            String logoutUrl = oauth2UserLogoutUri + "?redirect_uri=" + redirectUri;
+            String logoutUrl = oauth2UserLogoutUri + "?redirect_uri="+ redirectUri;
             log.debug("Redirecting to logout URL {}", logoutUrl);
             redirectStrategy.sendRedirect(request, response, logoutUrl);
         }
