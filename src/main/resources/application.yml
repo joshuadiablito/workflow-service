@@ -1,3 +1,10 @@
+keycloak:
+  auth.url: ${auth.url:http://localhost:8080}
+  client.id: ${auth.clientId:camunda-identity-service}
+  client.secret: ${auth.clientSecret:secret}
+  realm: ${auth.realm:elf}
+  registration.id: keycloak
+
 spring:
   jersey:
     application-path: /engine-rest
@@ -18,11 +25,27 @@ spring:
       pool-name: workflow-service
       auto-commit: false
     name: workflow-service
-  redis:
-    host: ${redis.host:localhost}
-    port: ${redis.port:6379}
-    password: ${redis.token:mypass}
-    ssl: ${redis.ssl:false}
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            provider: keycloak
+            scope: openid, profile, email
+            client-id: ${keycloak.client.id}
+            client-secret: ${keycloak.client.secret}
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+        provider:
+          keycloak:
+            authorization-uri: ${keycloak.auth.url}/auth/realms/${keycloak.realm}/protocol/openid-connect/auth
+            token-uri: ${keycloak.auth.url}/auth/realms/${keycloak.realm}/protocol/openid-connect/token
+            user-info-uri: ${keycloak.auth.url}/auth/realms/${keycloak.realm}/protocol/openid-connect/userinfo
+            jwk-set-uri: ${keycloak.auth.url}/auth/realms/${keycloak.realm}/protocol/openid-connect/certs
+            user-name-attribute: 'email'
+      resourceserver:
+        jwt:
+          issuer-uri: ${keycloak.auth.url}/auth/realms/${keycloak.realm}
 
 camunda:
   bpm:
@@ -31,15 +54,8 @@ camunda:
     webapp:
       application-path:
 
-
 server:
   servlet.context-path: /camunda
-
-keycloak:
-  auth.url: ${auth.url:http://localhost:8080}
-  client.id: ${auth.clientId:camunda-identity-service}
-  client.secret: ${auth.clientSecret:secret}
-  realm: ${auth.realm:elf}
 
 aws:
   region: ${AWS_REGION:eu-west-2}
@@ -48,20 +64,6 @@ aws:
     access-key: ${AWS_ACCESS_KEY:}
     secret-Key: ${AWS_SECRET_KEY:}
 
-security:
-  oauth2:
-    client:
-      client-id: ${keycloak.client.id}
-      client-secret: ${keycloak.client.secret}
-      accessTokenUri: ${keycloak.auth.url}/auth/realms/${keycloak.realm}/protocol/openid-connect/token
-      userAuthorizationUri: ${keycloak.auth.url}/auth/realms/${keycloak.realm}/protocol/openid-connect/auth
-      scope: openid profile email
-    resource:
-      userInfoUri: ${keycloak.auth.url}/auth/realms/${keycloak.realm}/protocol/openid-connect/userinfo
-
-rest.security:
-  jwk-set-url: ${keycloak.auth.url}/auth/realms/${keycloak.realm}/protocol/openid-connect/certs
-  required-audience: camunda-rest-api
 
 plugin.identity.keycloak:
   keycloakIssuerUrl: ${keycloak.auth.url}/auth/realms/${keycloak.realm}

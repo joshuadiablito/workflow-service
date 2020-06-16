@@ -24,7 +24,8 @@ public class KeycloakLogoutHandler implements LogoutSuccessHandler {
 
     private String oauth2UserLogoutUri;
 
-    public KeycloakLogoutHandler(@Value("${security.oauth2.client.user-authorization-uri:}") String oauth2UserAuthorizationUri) {
+    public KeycloakLogoutHandler(@Value("${spring.security.oauth2.client.provider.keycloak.authorization-uri:}")
+                                         String oauth2UserAuthorizationUri) {
         if (!StringUtils.isEmpty(oauth2UserAuthorizationUri)) {
              this.oauth2UserLogoutUri = oauth2UserAuthorizationUri.replace("openid-connect/auth", "openid-connect/logout");
         }
