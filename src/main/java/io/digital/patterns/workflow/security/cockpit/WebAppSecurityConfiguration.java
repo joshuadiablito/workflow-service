@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.session.data.redis.config.ConfigureRedisAction;
 import org.springframework.web.context.request.RequestContextListener;
 
 import java.util.Collections;
@@ -70,5 +71,9 @@ public class WebAppSecurityConfiguration extends WebSecurityConfigurerAdapter {
         return new RequestContextListener();
     }
 
+    @Bean
+    public static ConfigureRedisAction configureRedisAction() {
+        return ConfigureRedisAction.NO_OP;
+    }
 
 }
