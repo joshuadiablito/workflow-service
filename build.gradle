@@ -74,6 +74,10 @@ dependencies {
     implementation 'org.codehaus.groovy:groovy-all:2.5.10'
     implementation('uk.gov.service.notify:notifications-java-client:3.8.0-RELEASE')
 
+    implementation('org.springframework.boot:spring-boot-starter-data-redis')
+    implementation group: 'org.springframework.session', name: 'spring-session-data-redis', version: '2.3.0.RELEASE'
+    implementation group: 'org.springframework.session', name: 'spring-session-core', version: '2.3.0.RELEASE'
+
     implementation 'org.springframework.cloud:spring-cloud-context:2.2.2.RELEASE'
     implementation 'org.springframework.cloud:spring-cloud-starter-aws-secrets-manager-config:2.2.2.RELEASE'
 
