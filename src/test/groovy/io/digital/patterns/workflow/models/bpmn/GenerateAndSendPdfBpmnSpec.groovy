@@ -6,6 +6,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import com.amazonaws.services.s3.model.PutObjectRequest
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder
+import com.amazonaws.services.simpleemail.model.VerifyEmailIdentityRequest
 import com.github.tomakehurst.wiremock.junit.WireMockRule
 import com.github.tomjankes.wiremock.WireMockGroovy
 import io.digital.patterns.workflow.pdf.PdfService
@@ -14,6 +15,8 @@ import org.camunda.bpm.engine.test.Deployment
 import org.camunda.bpm.engine.test.ProcessEngineRule
 import org.camunda.bpm.engine.test.mock.Mocks
 import org.camunda.spin.DataFormats
+import org.hamcrest.Matchers
+import org.junit.Assert
 import org.junit.ClassRule
 import org.springframework.core.env.Environment
 import org.springframework.core.env.StandardEnvironment
@@ -27,8 +30,8 @@ import static com.github.tomakehurst.wiremock.http.Response.response
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.*
 import static org.camunda.spin.Spin.S
 
-@Deployment(resources = ['./models/bpmn/generate-pdf.bpmn'])
-class GeneratePdfBpmnSpec extends Specification {
+@Deployment(resources = ['./models/bpmn/generate-and-send-pdf.bpmn'])
+class GenerateAndSendPdfBpmnSpec extends Specification {
 
     def static wmPort = 8000
 
@@ -59,8 +62,13 @@ class GeneratePdfBpmnSpec extends Specification {
     def setupSpec() {
         System.setProperty("aws.s3.formData", "formdata")
         System.setProperty("aws.s3.pdfs", "pdfs")
+        System.setProperty("ses.from.address", "from@from.com")
         System.setProperty('formApi.url', "http://localhost:${wmPort}")
         localstack.start()
+
+        localstack.execInContainer("aws ses verify-email-identity " +
+                "--email-address from@from.com " +
+                "--endpoint=${localstack.getEndpointConfiguration(LocalStackContainer.Service.SES).serviceEndpoint}")
     }
 
     def cleanupSpec() {
@@ -105,6 +113,11 @@ class GeneratePdfBpmnSpec extends Specification {
                 }
             }
         }
+
+        amazonSimpleEmailService
+                .verifyEmailIdentity(new VerifyEmailIdentityRequest().withEmailAddress("from@from.com"))
+
+
     }
 
 
@@ -133,7 +146,7 @@ class GeneratePdfBpmnSpec extends Specification {
 
         when: 'a request to initiate pdf has been submitted'
         ProcessInstance instance = runtimeService()
-                .createProcessInstanceByKey('generate-pdf')
+                .createProcessInstanceByKey('generate-and-send-pdf')
                 .businessKey('businessKey')
                 .setVariables(['generatePdf' : generatePdf]).execute()
 
@@ -175,7 +188,7 @@ class GeneratePdfBpmnSpec extends Specification {
 
         when: 'a request to initiate pdf has been submitted'
         ProcessInstance instance = runtimeService()
-                .createProcessInstanceByKey('generate-pdf')
+                .createProcessInstanceByKey('generate-and-send-pdf')
                 .businessKey('businessKey')
                 .setVariables(['generatePdf' : generatePdf]).execute()
 
@@ -197,8 +210,8 @@ class GeneratePdfBpmnSpec extends Specification {
                                                                      } 
                                                                    }''')).correlateAllWithResult()
 
-        then: 'process instance completed'
-        assertThat(instance).isEnded()
+        then: 'should be waiting at sending pdf'
+        assertThat(instance).isWaitingAt('sendpdfs')
 
     }
 
@@ -227,7 +240,7 @@ class GeneratePdfBpmnSpec extends Specification {
 
         when: 'a request to initiate pdf has been submitted'
         ProcessInstance instance = runtimeService()
-                .createProcessInstanceByKey('generate-pdf')
+                .createProcessInstanceByKey('generate-and-send-pdf')
                 .businessKey('businessKey')
                 .setVariables(['generatePdf' : generatePdf]).execute()
 
@@ -280,7 +293,7 @@ class GeneratePdfBpmnSpec extends Specification {
 
         when: 'a request to initiate pdf has been submitted'
         ProcessInstance instance = runtimeService()
-                .createProcessInstanceByKey('generate-pdf')
+                .createProcessInstanceByKey('generate-and-send-pdf')
                 .businessKey('businessKey')
                 .setVariables(['generatePdf' : generatePdf]).execute()
 
@@ -298,5 +311,136 @@ class GeneratePdfBpmnSpec extends Specification {
         assertThat(task()).hasDescription('PDF for buildingPassRequest has not been generated')
 
     }
+
+    def 'can send pdf as attachments'() {
+        given: 'forms that a user has selected'
+        def generatePdf = S('''{
+                            "businessKey" : "businessKey",
+                            "forms": [{
+                                "name": "buildingPassRequest",
+                                "title" : "Building pass request",
+                                "dataPath": "businessKey/buildingPassRequest/20200128T083155-xx1@x.com.json",
+                                "submissionDate": "2020-01-28T08:31:55",
+                                "submittedBy": "xx1@x.com",
+                                "formVersionId": "84a32079-8e8b-4042-91db-c75d1cc3933a"
+                            }]
+                           
+                            }''', DataFormats.JSON_DATAFORMAT_NAME)
+
+        and: 'data exists in S3'
+        amazonS3.createBucket("formdata")
+        amazonS3.createBucket("pdfs")
+        amazonS3.putObject(new PutObjectRequest("formdata", "businessKey/buildingPassRequest/xx1@x.com-20200128T083155.json",
+                new ClassPathResource("data.json").getInputStream(), new ObjectMetadata()))
+
+        amazonS3.putObject(new PutObjectRequest("pdfs", "testPdf.pdf",
+                new ClassPathResource("testPdf.pdf").getInputStream(), new ObjectMetadata()))
+
+
+
+        when: 'a request to initiate pdf has been submitted'
+        ProcessInstance instance = runtimeService()
+                .createProcessInstanceByKey('generate-and-send-pdf')
+                .businessKey('businessKey')
+                .setVariables(['generatePdf' : generatePdf, 'initiatedBy': 'test@test.com']).execute()
+
+
+        then: 'process instance should be active'
+        assertThat(instance).isActive()
+        execute(job())
+        assertThat(instance).hasPassed('generatePdf')
+
+        when: 'response received from pdf server'
+        runtimeService()
+                .createMessageCorrelation(
+                        'pdfGenerated_buildingPassRequest_2020-01-28T08:31:55'
+                ).processInstanceId(instance.id)
+                .setVariable('buildingPassRequest', S('''{
+                                                                    "event" : "pdf-generation-success",
+                                                                    "data": {
+                                                                       "fileName" : "testPdf.pdf"
+                                                                     } 
+                                                                   }''')).correlateAllWithResult()
+
+        then: 'should be waiting at sending pdf'
+        assertThat(instance).isWaitingAt('sendpdfs')
+
+        when: 'send is executed'
+        execute(job())
+
+        then: 'pdf is sent'
+        Assert.assertThat(taskQuery().processInstanceId(instance.id).list().size(), Matchers.is(0))
+        assertThat(instance).hasPassed('sendpdfs')
+    }
+
+    def 'error handling scenario when fail to send pdf'() {
+        given: 'forms that a user has selected'
+        def generatePdf = S('''{
+                            "businessKey" : "businessKey",
+                            "forms": [{
+                                "name": "buildingPassRequest",
+                                "title" : "Building pass request",
+                                "dataPath": "businessKey/buildingPassRequest/20200128T083155-xx1@x.com.json",
+                                "submissionDate": "2020-01-28T08:31:55",
+                                "submittedBy": "xx1@x.com",
+                                "formVersionId": "84a32079-8e8b-4042-91db-c75d1cc3933a"
+                            }]
+                           
+                            }''', DataFormats.JSON_DATAFORMAT_NAME)
+
+        and: 'data exists in S3'
+        amazonS3.createBucket("formdata")
+        amazonS3.createBucket("pdfs")
+        amazonS3.putObject(new PutObjectRequest("formdata", "businessKey/buildingPassRequest/xx1@x.com-20200128T083155.json",
+                new ClassPathResource("data.json").getInputStream(), new ObjectMetadata()))
+
+
+        when: 'a request to initiate pdf has been submitted'
+        ProcessInstance instance = runtimeService()
+                .createProcessInstanceByKey('generate-and-send-pdf')
+                .businessKey('businessKey')
+                .setVariables(['generatePdf' : generatePdf, 'initiatedBy': 'test@test.com']).execute()
+
+
+        then: 'process instance should be active'
+        assertThat(instance).isActive()
+        execute(job())
+        assertThat(instance).hasPassed('generatePdf')
+
+        when: 'response received from pdf server'
+        runtimeService()
+                .createMessageCorrelation(
+                        'pdfGenerated_buildingPassRequest_2020-01-28T08:31:55'
+                ).processInstanceId(instance.id)
+                .setVariable('buildingPassRequest', S('''{
+                                                                    "event" : "pdf-generation-success",
+                                                                    "data": {
+                                                                       "fileName" : "testPdfA.pdf"
+                                                                     } 
+                                                                   }''')).correlateAllWithResult()
+
+        then: 'should be waiting at sending pdf'
+        assertThat(instance).isWaitingAt('sendpdfs')
+
+        when: 'send is executed'
+        execute(job())
+
+        then: 'user support task created'
+        Assert.assertThat(taskQuery().processInstanceId(instance.id).list().size(), Matchers.is(1))
+        assertThat(instance).isWaitingAt('sendpdfsFailure')
+
+
+        when: 'issue is fixed'
+        amazonS3.putObject(new PutObjectRequest("pdfs", "testPdfA.pdf",
+                new ClassPathResource("testPdf.pdf").getInputStream(), new ObjectMetadata()))
+
+        complete(task())
+        execute(job())
+
+        then: 'process is complete'
+        assertThat(instance).isEnded()
+
+    }
+
 
 }
