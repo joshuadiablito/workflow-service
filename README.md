@@ -36,9 +36,13 @@ The following properties need to be configured in AWS secrets manager
   "formApi.url": "https://formApi.example.com",
   "engine.webhook.url": "https://engine-service.example.com",
   "gov.notify.api.key": "xxxxxx",
-  "database.url": "jdbc:postgresql://dbUrl.example.com:5432/engine?sslmode=require&currentSchema=public"
+  "database.url": "jdbc:postgresql://dbUrl.example.com:5432/engine?sslmode=require&currentSchema=public",
+  "camunda.bpmn.upload.roles": "process_admin,bpmn_uploader"
 }
 ```
+
+***The REST API for deploying a BPMN to the REST endpoint has authorization checks. In order to upload you will need a
+role that is defined in the property camunda.bpmn.upload.roles. The default set up expects the user to have process_admin role***
 
 Example helm chart for install [helm - workflowservice](https://github.com/DigitalPatterns/helm/tree/master/workflowservice)
 
