@@ -28,7 +28,7 @@
             <camunda:script scriptFormat="groovy">def notificationPayload = execution.getVariable("notificationPayload");
 
 
-def messageBody = notificationPayload.prop('email').hasProp('body') ? notificationPayload.prop('email').prop('body').stringValue : null;
+def messageBody = notificationPayload.prop('email').hasProp('body') ? notificationPayload.prop('email').prop('body').stringValue() : null;
 
 if (messageBody == null) {
   messageBody =  """&lt;html&gt;
@@ -148,16 +148,14 @@ recipients;</camunda:script>
     <bpmn:sequenceFlow id="Flow_0t6eifh" sourceRef="Gateway_06c3hvb" targetRef="sendSMSs">
       <bpmn:extensionElements>
         <camunda:executionListener event="take">
-          <camunda:script scriptFormat="Groovy">
-def notificationPayload  = execution.getVariable("notificationPayload");
+          <camunda:script scriptFormat="Groovy">def notificationPayload  = execution.getVariable("notificationPayload");
 
 def numbers = new ArrayList();
 
 notificationPayload.prop('sms').prop('phoneNumbers').elements().each {
   it -&gt; numbers.add(it.stringValue());
 }
-execution.setVariable('phoneNumbers' ,numbers);
-</camunda:script>
+execution.setVariable('phoneNumbers' ,numbers);</camunda:script>
         </camunda:executionListener>
       </bpmn:extensionElements>
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${S(notificationPayload).hasProp('sms') == true}</bpmn:conditionExpression>
