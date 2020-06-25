@@ -78,9 +78,9 @@ server:
     key-store-password: changeit
     key-password: changeit
     key-store-type: PKCS12
-    trust-store: /etc/keystore/cacerts
-    trust-store-password: changeit
-    trust-store-type: PKCS12
+    trust-store: ${javax.net.ssl.trustStore:/etc/keystore/cacerts}
+    trust-store-password: ${javax.net.ssl.trustStorePassword:changeit}
+    trust-store-type: ${javax.net.ssl.trustStoreType:PKCS12}
 
 aws:
   region: ${AWS_REGION:eu-west-2}
