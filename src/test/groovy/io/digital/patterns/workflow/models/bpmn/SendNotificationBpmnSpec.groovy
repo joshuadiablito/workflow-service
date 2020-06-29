@@ -32,7 +32,7 @@ import static com.github.tomakehurst.wiremock.http.Response.response
 import static org.camunda.bpm.engine.test.assertions.bpmn.BpmnAwareTests.*
 import static org.camunda.spin.Spin.S
 
-@Deployment(resources = ['./models/bpmn/send-notifications.bpmn'])
+@Deployment(resources = ['./models/bpmn/send-notification.bpmn'])
 class SendNotificationBpmnSpec extends Specification {
 
 
