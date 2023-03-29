@@ -24,7 +24,7 @@ jobs:
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag ${{ env.IMAGE }}:latest
       - name: Publish to Docker Registry
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@v5
         with:
           name: ${{ env.IMAGE_DOCKER_HUB }}
           username: ${{ secrets.DOCKER_USERNAME }}
